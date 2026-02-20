@@ -29,11 +29,11 @@ jobs:
           # bash は ubuntu-latest に標準搭載 (5.x)
           # shellcheck
           sudo apt-get install -y shellcheck
-          # shfmt
+          # shfmt (一時ファイル経由でインストール)
           SHFMT_VERSION="3.7.0"
-          curl -sSLo /usr/local/bin/shfmt \
+          curl -sSLo /tmp/shfmt \
             "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64"
-          chmod +x /usr/local/bin/shfmt
+          sudo install -m 755 /tmp/shfmt /usr/local/bin/shfmt
           # bats-core
           BATS_VERSION="1.10.0"
           curl -sSL \
@@ -43,9 +43,9 @@ jobs:
           # jq / yq
           sudo apt-get install -y jq
           YQ_VERSION="4.40.5"
-          curl -sSLo /usr/local/bin/yq \
+          curl -sSLo /tmp/yq \
             "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
-          chmod +x /usr/local/bin/yq
+          sudo install -m 755 /tmp/yq /usr/local/bin/yq
           # make
           sudo apt-get install -y make
           # バージョン確認
