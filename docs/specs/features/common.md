@@ -1,8 +1,8 @@
 ---
 title: "共通仕様"
 spec_id: "SPEC-COMMON"
-version: "0.1.0"
-status: "draft"
+version: "0.2.0"
+status: "accepted"
 summary: "corun 全体で共有する基本仕様（終了コード、グローバルフラグ、入出力、コマンド階層など）"
 created: "2026-02-20"
 updated: "2026-02-20"
@@ -56,8 +56,27 @@ schema_version: "1.0"
 ```md
 1. コマンドライン引数(最優先)
 2. 環境変数
-3. 設定ファイル
-4. デフォルト値 
+3. デフォルト値 
+```
+
+> **Note**: 設定ファイルはサポートしないため優先順位チェーンに含まない（6. 設定ファイル 参照）。
+
+### フラグの重複指定
+
+同一フラグを複数回指定した場合、最後の指定を有効にする（last-wins）。
+
+### --verbose ログ出力形式
+
+`--verbose` を有効にした場合、以下の構造化形式で stderr に出力する:
+
+```
+timestamp=<ISO8601> level=DEBUG msg=<メッセージ>
+```
+
+例:
+
+```
+timestamp=2026-02-20T12:00:00Z level=DEBUG msg=loading task file
 ```
 
 ## 4.入出力
@@ -67,6 +86,10 @@ schema_version: "1.0"
 stdin | データ入力、パイプ入力
 stdout | 正常な出力結果
 stderr | エラーメッセージ、ログ、進捗表示
+
+### stdin の挙動
+
+stdin がパイプでもなく TTY でもない（クローズ済み）場合、コマンドはハングせず正常終了（終了コード 0）する。stdin を使用しないコマンドは stdin の状態を無視して続行する。
 
 ### エラーメッセージ形式
 
@@ -106,7 +129,7 @@ Run '<コマンド名> <command> --help' for more information.
 
 ## 8. ヘルプ出力形式
 
-```txet
+```text
 <コマンド名> - <短い説明>
 
 DESCRIPTION:
@@ -121,7 +144,7 @@ AVAILABLE COMMANDS:
 EXAMPLES:
   <使用例>
 
-LEAN MORE:
+LEARN MORE:
   Use `<コマンド名> <command> --help` for more information about a command.
 ```
 
@@ -132,7 +155,7 @@ LEAN MORE:
 Semantic Versioning に準拠:
 
 ```
-MAJAR.MINOR.PATCH[-PRERELEASE][+BUILD]
+MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 ```
 
 ### 出力形式
