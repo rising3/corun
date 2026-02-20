@@ -67,7 +67,7 @@
 
 **Why this priority**: ユーザビリティとして重要だが、機能自体は `--help` フラグ（User Story 1）の一部。出力形式の詳細定義として P3。
 
-**Independent Test**: `corun --help` を実行し、DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEAN MORE セクションがすべて含まれることを確認する。
+**Independent Test**: `corun --help` を実行し、DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE セクションがすべて含まれることを確認する。
 
 **Acceptance Scenarios**:
 
@@ -78,9 +78,9 @@
 
 ### Edge Cases
 
-- フラグが複数重複して指定された場合（例: `--verbose --verbose`）、エラーとせず最後の指定を有効にするか無視する。
+- フラグが複数重複して指定された場合（例: `--verbose --verbose`）、エラーとせず最後の指定を有効にする（last-wins）。
 - `--version` と `--help` を同時に指定した場合、`--help` を優先して表示する。
-- stdin がパイプでもなく TTY でもない（クローズ済み）場合、コマンドはハングせずにエラーか正常終了する。
+- stdin がパイプでもなく TTY でもない（クローズ済み）場合、コマンドはハングせず正常終了（終了コード 0）する。stdin を使用しないコマンドは stdin の状態を無視して続行する。
 - 無効な引数が混在するとき（例: `corun --unknown-flag`）、終了コード 3 かつ使用方法のヒントを stderr に出力する。
 - Ctrl-C をサブコマンド実行中に送信した場合、終了コード 2 で終了し、中途半端な状態を残さない。
 
@@ -91,8 +91,8 @@
 - **FR-001**: `corun` はルートコマンドとして `run` および `gen` サブコマンドを提供しなければならない (MUST)。
 - **FR-002**: すべてのコマンドは `--help` / `-h` フラグをサポートし、stdout にヘルプを出力して終了コード 0 で終了しなければならない (MUST)。
 - **FR-003**: ルートコマンドは `--version` / `-v` フラグをサポートし、`corun version <バージョン番号>` を stdout に出力して終了コード 0 で終了しなければならない (MUST)。バージョン番号は Semantic Versioning 形式 (`MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`) でなければならない (MUST)。
-- **FR-004**: すべてのコマンドは `--verbose` フラグをサポートし、詳細なログを stderr に出力しなければならない (MUST)。
-- **FR-005**: フラグの優先順位はコマンドライン引数 > 環境変数 > 設定ファイル > デフォルト値の順でなければならない (MUST)。
+- **FR-004**: すべてのコマンドは `--verbose` フラグをサポートし、詳細なログを stderr に出力しなければならない (MUST)。ログは構造化形式 `timestamp=<ISO8601> level=DEBUG msg=<メッセージ>` に従わなければならない (MUST)。
+- **FR-005**: フラグの優先順位はコマンドライン引数 > 環境変数 > デフォルト値の順でなければならない (MUST)。設定ファイルはサポートしないため優先順位チェーンには含まない（FR-011 参照）。
 - **FR-006**: 正常な出力結果は stdout、エラーメッセージ・ログ・進捗表示は stderr に出力しなければならない (MUST)。
 - **FR-007**: コマンドは以下の終了コードを使用しなければならない (MUST):
   - `0`: 正常終了
@@ -108,18 +108,28 @@
   Run '<コマンド名> <command> --help' for more information.
   ```
 - **FR-009**: ファイル操作を行うサブコマンドのエラーメッセージは GNU coreutils 互換の形式 (`<コマンド名>: <filename>: <error description>`) に従わなければならない (MUST)。
-- **FR-010**: ヘルプ出力は DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEAN MORE の各セクションを含まなければならない (MUST)。
+- **FR-010**: ヘルプ出力は DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE の各セクションを含まなければならない (MUST)。
 - **FR-011**: 設定ファイルおよびシェル補完はサポートしない (MUST NOT)。
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: `corun --help` を実行した場合、100% のケースで終了コード 0 かつ必須セクション（DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES）がすべて含まれる出力が得られる。
+- **SC-001**: `corun --help` を実行した場合、100% のケースで終了コード 0 かつ必須セクション（DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE）がすべて含まれる出力が得られる。
 - **SC-002**: `corun --version` を実行した場合、100% のケースで `corun version X.Y.Z` 形式の出力が終了コード 0 で得られる。
 - **SC-003**: 不正なフラグや引数を指定した場合、100% のケースで終了コード 3 かつ使用方法ヒントが stderr に出力される。
 - **SC-004**: 正常実行・エラー・キャンセル・不正フラグの 4 パターンすべてで、定義された終了コード（0 / 1 / 2 / 3）が返ることを BATS テストで検証できる。
 - **SC-005**: `--verbose` なし実行時に stderr が空であること（ログが stdout を汚染しないこと）を確認できる。
+
+## Clarifications
+
+### Session 2026-02-20
+
+- Q: FR-005（フラグ優先順位）に設定ファイルが含まれているが FR-011 では設定ファイルをサポートしない。どちらを優先するか？ → A: コマンドライン引数 > 環境変数 > デフォルト値（設定ファイルを削除）
+- Q: 同一フラグが複数回指定された場合（例: `--verbose --verbose`）の挙動は？ → A: 最後の指定を有効にする（last-wins）
+- Q: ヘルプ出力の最終セクション `LEAN MORE` は typo か意図的か？ → A: typo のため `LEARN MORE` に修正する
+- Q: stdin がクローズ済み（パイプでも TTY でもない）場合の終了コードは？ → A: 正常終了（終了コード 0）、stdin を使わないコマンドは無視して続行する
+- Q: `--verbose` 時のログ出力フォーマットは？ → A: 構造化ログ形式 `timestamp=<ISO8601> level=DEBUG msg=<メッセージ>`（key=value 形式）
 
 ## Assumptions
 
