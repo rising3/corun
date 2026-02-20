@@ -5,7 +5,7 @@ version: "0.1.0"
 status: "accepted"
 summary: "複数のプロンプトを実行するサブコマンドの仕様"
 created: "2026-02-20"
-updated: "2026-02-20"
+updated: "2026-02-21"
 authors:
   - name: "maintainer"
     email: ""
@@ -22,7 +22,7 @@ schema_version: "1.0"
 
 基本情報:
 - コマンド名: run
-- 親コマンド: <コマンド名>
+- 親コマンド: corun
 
 ## 概要
 
@@ -31,7 +31,7 @@ schema_version: "1.0"
 ## コマンド
 
 ```
-<コマンド名> run [flags] [string ...]
+corun run [flags] [string ...]
 ```
 ### 使用例
 
@@ -55,14 +55,24 @@ corun run < リダイレクト
 
 ## フラグ
 
+グローバルフラグ (`--help/-h`, `--verbose`) は全コマンド共通（共通仕様参照）。以下は `run` サブコマンド固有のフラグ。
+
 フラグ | 短縮形 | 型 | デフォルト | 説明
 --- | --- | --- | --- | ---
---prompt | -p | string | - | プロンプト定義ファイル名を指定する
---model | - | string | gpt-5-mini | モデル名を指定する
---continue | - | bool | true | 
---no-ask-user | - | bool | false | Disable the ask_user tool (agent works autonomously without asking questions)
---log-dir | - | string | copilot-cli準拠 | a Set log file directory (default: ~/.copilot/logs/ )
---log-level | - | string | copilot-cli準拠 | Set the log level (choices: "none", "error", "warning", "info", "debug", "all", "default")
+--prompt | -p | string | - | プロンプト定義ファイルのパスを指定する
+--model | - | string | gpt-5-mini | 使用するモデル名を指定する
+--continue | - | bool | true | 前回のセッションを継続する
+--no-ask-user | - | bool | false | ユーザーへの問い合わせを無効化し、エージェントが自律的に動作する
+--log-dir | - | string | copilot-cli 準拠 | ログファイルの出力先ディレクトリを指定する (デフォルト: `~/.copilot/logs/`)
+--log-level | - | string | copilot-cli 準拠 | ログレベルを指定する (選択肢: `none`, `error`, `warning`, `info`, `debug`, `all`, `default`)
+
+### フラグの優先順位
+
+共通仕様に準拠する（コマンドライン引数 > 環境変数 > デフォルト値）。
+
+### フラグの重複指定
+
+共通仕様に準拠する（last-wins：同一フラグを複数回指定した場合、最後の指定が有効になる）。
 
 ### corunとcopilot cliのフラグのマッピング
 
@@ -70,11 +80,11 @@ corun run < リダイレクト
 
 corunフラグ | フラグの値 | copilot cliのフラグ
 --- | --- | ---
--model | モデル\<model\>の指定がある場合 | --model \<model\>
---continue | trueの場合 | --continue
---no-ask-user | trueの場合 | --no-ask-user
---log-dir | ディレクトリ\<\dir>の指定がある場合 | --log-dir \<dir\>
---log-level | ログレベル\<\level>の指定がある場合 | --log-level \<level\>
+--model | モデル `<model>` の指定がある場合 | --model `<model>`
+--continue | `true` の場合 | --continue
+--no-ask-user | `true` の場合 | --no-ask-user
+--log-dir | ディレクトリ `<dir>` の指定がある場合 | --log-dir `<dir>`
+--log-level | ログレベル `<level>` の指定がある場合 | --log-level `<level>`
 
 ### フラグの競合
 
@@ -85,29 +95,29 @@ corunフラグ | フラグの値 | copilot cliのフラグ
 `--prompt`フラグで指定するファイルの内容。
 
 ```yaml
-resume: session-id
-log-dir: ~/test-log
-log-level: debug
-continue: true
-no-ask-user: true
+resume: session-id       # 再開するセッションID (省略可)
+log-dir: ~/test-log      # ログ出力先 (省略可。省略時は copilot-cli のデフォルト)
+log-level: debug         # ログレベル (省略可)
+continue: true           # グローバルデフォルト: セッション継続
+no-ask-user: true        # グローバルデフォルト: ユーザー問い合わせ無効
 prompts:
-	- id: hello
-		title: "こんにちは"
-		description: "挨拶する"
-		prompt: |
-			こんにちは
-			暑いですね
-		continue: true
-		no-ask-user: true
-		env:
-			TZ: "Asia/Tokyo"
-		timeout_seconds: 3600
-		retries:
-			count: 2
-			delay_seconds: 60
-			backoff: "linear"
-		on_failure:
-			action: "abort"
+  - id: hello
+    title: "こんにちは"
+    description: "挨拶する"
+    prompt: |
+      こんにちは
+      暑いですね
+    continue: true         # このプロンプトのみ有効 (グローバルより優先)
+    no-ask-user: true      # このプロンプトのみ有効 (グローバルより優先)
+    env:
+      TZ: "Asia/Tokyo"     # このプロンプト実行時のみ適用される環境変数
+    timeout_seconds: 3600  # タイムアウト秒数 (省略可)
+    retries:
+      count: 2             # 最大再試行回数
+      delay_seconds: 60    # 再試行前の待機秒数
+      backoff: "linear"    # 待機時間の増加方式 (linear のみサポート)
+    on_failure:
+      action: "abort"      # 失敗時の動作 (abort: 以降をスキップ / 未指定: 継続)
 ```
 
 - `prompts[]` の各プロンプトに `continue` / `no-ask-user` が設定されている場合は、そのプロンプトの実行時のみグローバルフラグ (`--continue` / `--no-ask-user`) の値より優先して使用する（グローバルフラグの値自体は変更しない）
@@ -118,8 +128,8 @@ prompts:
 --- |  --- | ---
 string | いいえ | プロンプト文字列(複数指定可能)
 
-引数が指定されていない場合、以下のいずれかの入力がなければ引数エラーとする
-- パイプ入力がある
+引数が指定されていない場合、以下のいずれかの条件を満たさなければ終了コード 3 (EXIT_USAGE) とする。
+- パイプ/リダイレクト入力がある
 - `--prompt` フラグが指定されている
 
 ## 入出力
@@ -127,8 +137,12 @@ string | いいえ | プロンプト文字列(複数指定可能)
 ストリーム | 用途
 --- | ---
 stdin | データ入力、パイプ入力
-stdout | 正常な出力結果
+stdout | 正常な出力結果（copilot CLI の出力をそのまま流す）
 stderr | エラーメッセージ、ログ、進捗表示
+
+### stdin の挙動
+
+共通仕様に準拠する。stdin がパイプでもなく TTY でもない（クローズ済み）場合はハングせず、引数なし・`--prompt`なしと同様に終了コード 3 (EXIT_USAGE) で終了する。
 
 ## 動作フロー
 
@@ -166,7 +180,26 @@ stderr | エラーメッセージ、ログ、進捗表示
 
 ## エラーと終了コード
 
-- 共通仕様に準拠する。
+共通仕様の終了コードに準拠する。
+
+コード | 発生条件
+--- | ---
+0 | すべてのプロンプトが正常終了した
+1 | YAML パース失敗 / ファイルが存在しない / copilot CLI の実行エラー
+2 | SIGINT (Ctrl-C) を受信した
+3 | 引数・パイプ・`--prompt` がすべてない / 不明なフラグを指定した
+
+### エラーメッセージ形式
+
+共通仕様のルートコマンドのエラー形式に準拠する:
+
+```
+Error: <エラーメッセージ>
+
+Usage: corun run [flags] [string ...]
+
+Run 'corun run --help' for more information.
+```
 
 ## テストケース
 
@@ -247,4 +280,5 @@ stderr | エラーメッセージ、ログ、進捗表示
 
 ## 更新履歴
 
+- 2026-02-21: common.md 準拠に仕様を整備（フラグ説明・優先順位・エラー形式・stdin挙動・YAMLコメント追加）
 - 2026-02-21: 作成
