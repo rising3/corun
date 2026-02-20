@@ -18,6 +18,8 @@ source "${_CORUN_SRC_DIR}/lib/io.sh"
 source "${_CORUN_SRC_DIR}/lib/flags.sh"
 # shellcheck source=src/lib/version.sh
 source "${_CORUN_SRC_DIR}/lib/version.sh"
+# shellcheck source=src/lib/help.sh
+source "${_CORUN_SRC_DIR}/lib/help.sh"
 
 # ─── シグナルハンドラー ───────────────────────────────────────────────────────
 
@@ -40,9 +42,7 @@ fi
 
 # --help / -h
 if [[ "${CORUN_HELP:-0}" -eq 1 ]]; then
-  # help.sh は Phase 6 (T022) で実装する
-  # 現時点では基本的な使用方法を出力してエラーにしない
-  printf 'Usage: corun [--help|-h] [--verbose] [--version|-v] [<subcommand>] [<args>]\n'
+  print_help
   exit "$EXIT_OK"
 fi
 
