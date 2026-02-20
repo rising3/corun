@@ -23,11 +23,11 @@ schema_version: "1.0"
 
 開発するCLIの全コマンドに共通する仕様を定義する。
 
-## 1.基本情報
+## 基本情報
 
 - コマンド名: corun
 
-## 2.終了コード
+## 終了コード
 
 コード | 名称 | 説明
 --- | --- | ---
@@ -36,7 +36,7 @@ schema_version: "1.0"
 2 | キャンセル | ユーザーが処理をキャンセルした
 3 | 使用方法エラー | 引数・フラグの指定が不正
 
-## 3.グローバルフラグ
+## グローバルフラグ
 
 全コマンドで使用可能なフラグ:
 
@@ -79,7 +79,7 @@ timestamp=<ISO8601> level=DEBUG msg=<メッセージ>
 timestamp=2026-02-20T12:00:00Z level=DEBUG msg=loading task file
 ```
 
-## 4.入出力
+## 入出力
 
 ストリーム | 用途
 --- | ---
@@ -111,7 +111,7 @@ Run '<コマンド名> <command> --help' for more information.
 <コマンド名>: <filename>: <error description> 
 ```
 
-## 5. コマンド階層
+## コマンド階層
 
 ```
 <コマンド名>
@@ -119,15 +119,15 @@ Run '<コマンド名> <command> --help' for more information.
 └── gen     # 生成: テンプレートを生成する
 ```
 
-## 6. 設定ファイル
+## 設定ファイル
 
 サポートしない。
 
-## 7. シェル補完
+## シェル補完
 
 サポートしない。
 
-## 8. ヘルプ出力形式
+## ヘルプ出力形式
 
 ```text
 <コマンド名> - <短い説明>
@@ -148,7 +148,7 @@ LEARN MORE:
   Use `<コマンド名> <command> --help` for more information about a command.
 ```
 
-## 9. バージョン情報
+## バージョン情報
 
 ### バージョン形式
 
@@ -164,6 +164,6 @@ MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 <コマンド名> version <バージョン番号>
 ```
 
-## 10. 参考情報
+## 参考情報
 
 - [Semantic Versioning](https://semver.org/)

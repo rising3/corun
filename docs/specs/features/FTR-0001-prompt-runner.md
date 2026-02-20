@@ -14,6 +14,7 @@ tags: ["run","cli","prompt"]
 command: "corun run"
 related:
   - common.md
+  - copilot-cli-help.txt
 schema_version: "1.0"
 ---
 
@@ -242,7 +243,7 @@ stderr | エラーメッセージ、ログ、進捗表示
 
 ## 参考情報
 
-なし
+- copilot-cli-help.txt
 
 ## 更新履歴
 
