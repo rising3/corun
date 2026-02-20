@@ -27,27 +27,13 @@ jobs:
         run: |
           sudo apt-get update -qq
           # bash は ubuntu-latest に標準搭載 (5.x)
-          # shellcheck
-          sudo apt-get install -y shellcheck
-          # shfmt (一時ファイル経由でインストール)
-          SHFMT_VERSION="3.7.0"
-          curl -sSLo /tmp/shfmt \
-            "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64"
-          sudo install -m 755 /tmp/shfmt /usr/local/bin/shfmt
-          # bats-core
-          BATS_VERSION="1.10.0"
-          curl -sSL \
-            "https://github.com/bats-core/bats-core/archive/refs/tags/v${BATS_VERSION}.tar.gz" \
-            | tar -xz -C /tmp
-          sudo /tmp/bats-core-${BATS_VERSION}/install.sh /usr/local
-          # jq / yq
-          sudo apt-get install -y jq
+          # shellcheck / shfmt / bats / jq / make は apt で一括インストール
+          sudo apt-get install -y shellcheck shfmt bats jq make
+          # yq (mikefarah/yq) は apt 未収録のため直接インストール
           YQ_VERSION="4.40.5"
           curl -sSLo /tmp/yq \
             "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
           sudo install -m 755 /tmp/yq /usr/local/bin/yq
-          # make
-          sudo apt-get install -y make
           # バージョン確認
           bash --version | head -1
           shellcheck --version | head -2
