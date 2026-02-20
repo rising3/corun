@@ -33,6 +33,7 @@ schema_version: "1.0"
 ```
 corun run [flags] [string ...]
 ```
+
 ### 使用例
 
 ```bash
@@ -61,7 +62,7 @@ corun run < リダイレクト
 --- | --- | --- | --- | ---
 --prompt | -p | string | - | プロンプト定義ファイルのパスを指定する
 --model | - | string | gpt-5-mini | 使用するモデル名を指定する
---continue | - | bool | true | 前回のセッションを継続する
+--continue | - | bool | false | 前回のセッションを継続する
 --no-ask-user | - | bool | false | ユーザーへの問い合わせを無効化し、エージェントが自律的に動作する
 --log-dir | - | string | copilot-cli 準拠 | ログファイルの出力先ディレクトリを指定する (デフォルト: `~/.copilot/logs/`)
 --log-level | - | string | copilot-cli 準拠 | ログレベルを指定する (選択肢: `none`, `error`, `warning`, `info`, `debug`, `all`, `default`)
@@ -86,6 +87,18 @@ corunフラグ | フラグの値 | copilot cliのフラグ
 --log-dir | ディレクトリ `<dir>` の指定がある場合 | --log-dir `<dir>`
 --log-level | ログレベル `<level>` の指定がある場合 | --log-level `<level>`
 
+### プロンプト定義ファイルのフィールドマッピング
+
+プロンプト定義 YAML のトップレベルフィールドと copilot CLI フラグの対応：
+
+YAML フィールド | copilot cli フラグ | 備考
+--- | --- | ---
+`resume` | --resume `<session-id>` | 省略時は渡さない
+`log-dir` | --log-dir `<dir>` | 省略時は copilot-cli デフォルト
+`log-level` | --log-level `<level>` | 省略時は copilot-cli デフォルト
+`continue` | --continue | `true` の場合のみ付与
+`no-ask-user` | --no-ask-user | `true` の場合のみ付与
+
 ### フラグの競合
 
 - なし
@@ -95,7 +108,7 @@ corunフラグ | フラグの値 | copilot cliのフラグ
 `--prompt`フラグで指定するファイルの内容。
 
 ```yaml
-resume: session-id       # 再開するセッションID (省略可)
+resume: session-id       # 再開するセッションID (省略可。指定時は copilot CLI の --resume フラグとして渡す)
 log-dir: ~/test-log      # ログ出力先 (省略可。省略時は copilot-cli のデフォルト)
 log-level: debug         # ログレベル (省略可)
 continue: true           # グローバルデフォルト: セッション継続
@@ -115,7 +128,7 @@ prompts:
     retries:
       count: 2             # 最大再試行回数
       delay_seconds: 60    # 再試行前の待機秒数
-      backoff: "linear"    # 待機時間の増加方式 (linear のみサポート)
+      backoff: "linear"    # 待機時間の増加方式。linear: delay_seconds × n (n=1,2,3…)
     on_failure:
       action: "abort"      # 失敗時の動作 (abort: 以降をスキップ / 未指定: 継続)
 ```
@@ -128,9 +141,10 @@ prompts:
 --- |  --- | ---
 string | いいえ | プロンプト文字列(複数指定可能)
 
+入力ソースの優先順位: `--prompt` > 引数 > stdin（上位が存在すれば下位は無視する）。
 引数が指定されていない場合、以下のいずれかの条件を満たさなければ終了コード 3 (EXIT_USAGE) とする。
-- パイプ/リダイレクト入力がある
 - `--prompt` フラグが指定されている
+- パイプ/リダイレクト入力がある
 
 ## 入出力
 
@@ -146,30 +160,39 @@ stderr | エラーメッセージ、ログ、進捗表示
 
 ## 動作フロー
 
-1. **フラグ・引数をパースする**
+1. **前提条件を検証する**
+   - copilot CLI (`copilot`) が PATH 上に存在するか確認する
+   - 見つからない場合は即時に終了コード 1 (EXIT_ERROR) で終了し、エラーメッセージを stderr に出力する
+
+2. **フラグ・引数をパースする**
    - グローバルフラグ (`--model`, `--continue`, `--no-ask-user`, `--log-dir`, `--log-level`) を解釈する
    - 不明なフラグがある場合は終了コード 3 (EXIT_USAGE) で終了し、使用方法ヒントを stderr に出力する
 
-2. **入力ソースを確定する**
-   - `--prompt <file>` が指定されている場合 → ファイルをプロンプト定義として読み込む
-   - 引数 (`string ...`) が指定されている場合 → 各引数を1プロンプトとしてプロンプト定義の形式に変換する
-   - 上記どちらもなく stdin がパイプ/リダイレクトの場合 → stdin 全体を1プロンプトとして扱う
+2. **フラグ・引数をパースする**
+   - グローバルフラグ (`--model`, `--continue`, `--no-ask-user`, `--log-dir`, `--log-level`) を解釈する
+   - 不明なフラグがある場合は終了コード 3 (EXIT_USAGE) で終了し、使用方法ヒントを stderr に出力する
+
+3. **入力ソースを確定する** (優先順位: `--prompt` > 引数 > stdin。上位が存在すれば下位は無視する)
+   - `--prompt <file>` が指定されている場合 → ファイルをプロンプト定義として読み込む（引数・stdin は無視）
+   - `--prompt` なしで引数 (`string ...`) が指定されている場合 → 各引数を1プロンプトとしてプロンプト定義の形式に変換する（stdin は無視）
+   - `--prompt`・引数いずれもなく stdin がパイプ/リダイレクトの場合 → stdin 全体を1プロンプトとして扱う
    - いずれも該当しない場合 (stdin が TTY) → 終了コード 3 (EXIT_USAGE) で終了する
 
-3. **プロンプト定義をパースする**
+4. **プロンプト定義をパースする**
    - YAML のパースに失敗した場合は終了コード 1 (EXIT_ERROR) で終了し、エラーメッセージを stderr に出力する
    - `prompts` リストが空の場合は警告を stderr に出力して終了コード 0 で終了する
 
-4. **プロンプトを順番に実行する** (`prompts[]` の定義順)
+5. **プロンプトを順番に実行する** (`prompts[]` の定義順)
    1. **copilot CLI フラグを組み立てる**
+      - プロンプト定義ファイルの `resume` フィールドがある場合は `--resume <session-id>` を付与する
       - グローバルフラグをベースに copilot CLI フラグへマッピングする
       - プロンプト個別の `continue` / `no-ask-user` が設定されている場合はそちらを優先する (グローバル値を上書きするのではなく、そのプロンプト呼び出し時のみ有効)
       - プロンプト個別の `env` が設定されている場合は、環境変数として copilot CLI に渡す
    2. **copilot CLI を実行する**
       - `copilot <フラグ一式> -p <prompt文字列>` を実行する
       - `timeout_seconds` が設定されている場合は、タイムアウト経過で強制終了し終了コード 1 で次のステップへ進む
-   3. **失敗時の処理** (終了コードが 0 以外の場合)
-      - `retries.count` が残っている場合: `retries.delay_seconds` 待機後に再実行する (`backoff: linear` の場合は待機時間を線形に増加させる)
+   3. **失敗時の処理** (判定基準: copilot CLI の終了コードが 0 以外)
+      - `retries.count` が残っている場合: n 回目の再試行前に `delay_seconds × n` 秒待機してから再実行する (`backoff: linear` の計算式。例: delay_seconds=60 のとき 1回目60s、2回目120s)
       - 再試行をすべて使い切った場合、または `retries` 未設定の場合:
         - `on_failure.action: abort` → 後続プロンプトをすべてスキップして終了コード 1 で終了する
         - `on_failure` 未設定 → 後続プロンプトの実行を継続する
@@ -185,7 +208,7 @@ stderr | エラーメッセージ、ログ、進捗表示
 コード | 発生条件
 --- | ---
 0 | すべてのプロンプトが正常終了した
-1 | YAML パース失敗 / ファイルが存在しない / copilot CLI の実行エラー
+1 | copilot CLI が見つからない / YAML パース失敗 / ファイルが存在しない / copilot CLI の実行エラー
 2 | SIGINT (Ctrl-C) を受信した
 3 | 引数・パイプ・`--prompt` がすべてない / 不明なフラグを指定した
 
@@ -266,10 +289,11 @@ Run 'corun run --help' for more information.
 | ID | テストケース | コマンド | 期待結果 |
 | --- | --- | --- | --- |
 | IT-10 | 引数・パイプ・`--prompt` がすべてない場合は使用方法エラー | `corun run` (stdin は TTY) | 終了コード 3 (EXIT_USAGE)、使用方法ヒントを stderr に出力 |
-| IT-11 | 存在しない `--prompt` ファイルはエラーになる | `corun run --prompt not-exist.yml` | 終了コード 1 (EXIT_ERROR)、エラーメッセージを stderr に出力 |
+| IT-11 | copilot CLI が PATH 上に存在しない場合は即時エラー | `corun run "hello"` (copilot なし) | 終了コード 1 (EXIT_ERROR)、エラーメッセージを stderr に出力 |
+| IT-12 | 存在しない `--prompt` ファイルはエラーになる | `corun run --prompt not-exist.yml` | 終了コード 1 (EXIT_ERROR)、エラーメッセージを stderr に出力 |
 | IT-12 | 不正な YAML ファイルはエラーになる | `corun run --prompt invalid.yml` | 終了コード 1 (EXIT_ERROR)、エラーメッセージを stderr に出力 |
 | IT-13 | copilot CLI が失敗したとき `on_failure: abort` で中断する | プロンプト1失敗、`on_failure: abort` | 終了コード 1、プロンプト2以降は実行されない |
-| IT-14 | retries 設定に従って再試行する | copilot CLI が1回失敗、`retries.count: 2` | `delay_seconds` 待機後に最大2回再試行する |
+| IT-14 | retries 設定に従って線形バックオフで再試行する | copilot CLI が1回失敗、`retries.count: 2`, `delay_seconds: 60` | 1回目は60s、2回目は120s 待機後に再試行し、最大2回まで繰り返す |
 | IT-15 | SIGINT を送信すると終了コード 2 で終了する | `corun run "hello"` 実行中に Ctrl-C | 終了コード 2 (EXIT_CANCEL) |
 
 
