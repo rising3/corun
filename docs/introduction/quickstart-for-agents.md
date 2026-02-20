@@ -7,8 +7,8 @@ summary: "エージェント/開発者向けの最短導入手順と基本コマ
 created: "2026-02-20"
 updated: "2026-02-20"
 authors:
-	- name: "maintainer"
-		email: ""
+  - name: "maintainer"
+    email: ""
 tags: ["quickstart","agents"]
 schema_version: "1.0"
 ---

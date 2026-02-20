@@ -7,8 +7,8 @@ summary: "新しい機能仕様作成のテンプレート"
 created: "2026-02-20"
 updated: "2026-02-20"
 authors:
-	- name: "maintainer"
-		email: ""
+  - name: "maintainer"
+    email: ""
 reviewers: []
 tags: ["template","spec"]
 schema_version: "1.0"

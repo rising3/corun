@@ -7,8 +7,8 @@ summary: "corun プロジェクトの導入ドキュメントと案内"
 created: "2026-02-20"
 updated: "2026-02-20"
 authors:
-	- name: "maintainer"
-		email: ""
+  - name: "maintainer"
+    email: ""
 tags: ["introduction","getting-started"]
 schema_version: "1.0"
 ---
