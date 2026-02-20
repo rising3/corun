@@ -41,15 +41,15 @@
 
 ### Tests for User Story 1 ⚠️ Write FIRST, confirm FAIL before implementing
 
-- [ ] T008 [US1] フラグ解析の単体テストを作成する in `tests/unit/flags_test.bats`（`--help` / `-h` の認識、`--verbose` の認識、`--version` / `-v` の認識、不明フラグで終了コード 3、重複フラグ last-wins（`--verbose --verbose` で verbose ON）、`--version` と `--help` の同時指定で `--help` 優先）
-- [ ] T009 [P] [US1] バージョン表示の単体テストを作成する in `tests/unit/version_test.bats`（`print_version()` が `corun version X.Y.Z` 形式、SemVer パターンマッチ `^[0-9]+\.[0-9]+\.[0-9]+`）
+- [x] T008 [US1] フラグ解析の単体テストを作成する in `tests/unit/flags_test.bats`（`--help` / `-h` の認識、`--verbose` の認識、`--version` / `-v` の認識、不明フラグで終了コード 3、重複フラグ last-wins（`--verbose --verbose` で verbose ON）、`--version` と `--help` の同時指定で `--help` 優先）
+- [x] T009 [P] [US1] バージョン表示の単体テストを作成する in `tests/unit/version_test.bats`（`print_version()` が `corun version X.Y.Z` 形式、SemVer パターンマッチ `^[0-9]+\.[0-9]+\.[0-9]+`）
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] フラグ解析関数を実装する in `src/lib/flags.sh`（`parse_flags()`: `--help`/`-h` → `CORUN_HELP=1`、`--verbose` → `CORUN_VERBOSE=1` (last-wins)、`--version`/`-v` → `CORUN_VERSION=1`、不明フラグ → `exit 3` + stderr へ使用方法ヒント）
-- [ ] T011 [P] [US1] バージョン表示関数を実装する in `src/lib/version.sh`（`print_version()`: `corun version X.Y.Z` を stdout へ出力）
-- [ ] T012 [US1] `--version` 結合テストを作成・検証する in `integration_tests/version_integration_test.bats`（`corun --version` → 終了コード 0、`corun version X.Y.Z` 形式）
-- [ ] T013 [US1] `--verbose` 結合テストを作成・検証する in `integration_tests/verbose_integration_test.bats`（`--verbose` あり → stderr に `timestamp=` `level=DEBUG` を含む、`--verbose` なし → stderr 空）
+- [x] T010 [US1] フラグ解析関数を実装する in `src/lib/flags.sh`（`parse_flags()`: `--help`/`-h` → `CORUN_HELP=1`、`--verbose` → `CORUN_VERBOSE=1` (last-wins)、`--version`/`-v` → `CORUN_VERSION=1`、不明フラグ → `exit 3` + stderr へ使用方法ヒント）
+- [x] T011 [P] [US1] バージョン表示関数を実装する in `src/lib/version.sh`（`print_version()`: `corun version X.Y.Z` を stdout へ出力）
+- [x] T012 [US1] `--version` 結合テストを作成・検証する in `integration_tests/version_integration_test.bats`（`corun --version` → 終了コード 0、`corun version X.Y.Z` 形式）
+- [x] T013 [US1] `--verbose` 結合テストを作成・検証する in `integration_tests/verbose_integration_test.bats`（`--verbose` あり → stderr に `timestamp=` `level=DEBUG` を含む、`--verbose` なし → stderr 空）
 
 **Checkpoint**: `corun --version` と `corun --verbose` が独立して動作することを確認
 
