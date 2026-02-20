@@ -121,11 +121,18 @@ Makefile                 # ビルド・テスト・lint 自動化
 
 各ライブラリの実装前に BATS テストを作成（Red）→ 実装（Green）→ リファクタリング の順で進める。
 
+**モック・スタブ戦略** (CHK012 対応):
+
+単体テストでは外部依存（GitHub Copilot CLI 等）を切り離すため、以下の戦略を採用する:
+- `tests/fixtures/` に GitHub Copilot CLI の **スタブスクリプト**（`gh` コマンドのシミュレーター）を配置し、`PATH` に優先追加することで外部コマンドを差し替える
+- BATS の `setup()` / `teardown()` で `PATH` を制御し、テスト間の副作用を排除する
+- `CORUN_VERBOSE` / `CORUN_HELP` / `CORUN_VERSION` はテスト内で直接環境変数として設定し、`parse_flags()` を経由せずに単体で検証可能にする
+
 **単体テスト対象**:
 
 | ファイル | 主なテストケース |
 |---|---|
-| `flags_test.bats` | `--help` / `-h` / `--verbose` / `--version` / `-v` の認識、不明フラグで終了コード 3、重複フラグ last-wins |
+| `flags_test.bats` | `--help` / `-h` / `--verbose` / `--version` / `-v` の認識、不明フラグで終了コード 3、重複フラグ last-wins、`--version --help` 同時指定（`--help` 優先）|
 | `exit_codes_test.bats` | 各定数の値確認（EXIT_OK=0, EXIT_ERROR=1, EXIT_CANCEL=2, EXIT_USAGE=3） |
 | `io_test.bats` | `out()` が stdout のみ出力、`err()` が stderr のみ出力、`log_debug()` が verbose OFF 時に何も出力しない |
 | `help_test.bats` | 出力に DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE が含まれる |
@@ -146,12 +153,13 @@ Makefile                 # ビルド・テスト・lint 自動化
 **Makefile ターゲット**:
 
 ```makefile
-lint:   # shellcheck src/**/*.sh bin/corun
-format: # shfmt -w src/**/*.sh bin/corun
-test:   # bats tests/unit/
+lint:             # shellcheck src/**/*.sh bin/corun
+format:           # shfmt -w src/**/*.sh bin/corun tests/**/*.bats integration_tests/**/*.bats
+test:             # bats tests/unit/
 integration_test: # bats integration_tests/
-build:  # chmod +x bin/corun, verify
-clean:  # rm -rf dist/
+build:            # chmod +x bin/corun, verify
+clean:            # rm -rf dist/
+help:             # 使用可能なターゲットと説明の一覧表示
 ```
 
 **CI パイプライン** (`.github/workflows/ci.yml`):
@@ -161,10 +169,11 @@ push/PR → main, next, feature/**
   Step 1: actions/checkout@v3
   Step 2: install prerequisites (bash, shellcheck, shfmt, bats, make)
   Step 3: make lint
-  Step 4: make test
-  Step 5: make integration_test
-  Step 6: make build
-  Step 7: upload coverage report
+  Step 4: make format (shfmt --diff モードで差分チェック、差分があれば CI 失敗)
+  Step 5: make test
+  Step 6: make integration_test
+  Step 7: make build
+  Step 8: upload coverage report
 ```
 
 ## Complexity Tracking
@@ -179,3 +188,4 @@ Constitution Check で violations なし。複雑性の追加は不要。
 | stdin クローズ済み時のハング | テスト環境・CI でのハング | `read` にタイムアウトを設定、stdin 状態を事前チェック |
 | 重複フラグ last-wins の誤実装 | テスト失敗 | BATS で `--verbose --verbose` / `-v --version` のシナリオを網羅 |
 | ShellCheck 誤検知 | lint 失敗 | `# shellcheck disable=SC...` ディレクティブを最小限使用し理由をコメント記載 |
+| `set -euo pipefail` × SIGPIPE | パイプチェーン中断（終了コード 141） | SIGPIPE が発生しうる操作（`corun \| head -1` 等）は `pipe_integration_test.bats` で検証し、必要に応じて `set +e` を局所的に適用するか `|| true` でハンドリングする |
