@@ -40,3 +40,14 @@ LIB="${REPO_ROOT}/src/lib/version.sh"
   run bash -c "source '${LIB}'; print_version"
   [[ "$output" == "corun version "* ]]
 }
+
+@test "print_version() は VERSION ファイルが存在しないとき '0.0.0' を出力する" {
+  run bash -c "
+    source '${LIB}'
+    # source 後に VERSION ファイルパスを存在しないパスに差し替える
+    _CORUN_VERSION_FILE='/nonexistent/path/VERSION'
+    print_version
+  "
+  [ "$status" -eq 0 ]
+  [ "$output" = "corun version 0.0.0" ]
+}

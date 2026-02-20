@@ -116,12 +116,12 @@
 
 **Purpose**: 品質ゲート通過・ドキュメント整備・CI 最終検証
 
-- [ ] T023 [P] ShellCheck 静的解析を全ファイルに実行し違反をゼロにする (`make lint`): `bin/corun`, `src/**/*.sh`
-- [ ] T024 [P] Shfmt フォーマッタを全ファイルに実行する (`make format`): `bin/corun`, `src/**/*.sh`, `tests/**/*.bats`, `integration_tests/**/*.bats`
-- [ ] T025 CI パイプラインをエンドツーエンドで通過させる（`make lint` → `make test` → `make integration_test` → `make build` がすべて green）
-- [ ] T026 コアモジュールのテストカバレッジが 85% 以上であることを確認する（`exit_codes.sh` / `io.sh` / `flags.sh` / `help.sh` / `version.sh` を重点確認）
-- [ ] T027 [P] `README.md` を更新する（インストール手順・使用方法・フラグ一覧・終了コード表）
-- [ ] T028 [P] `CHANGELOG.md` に `feat: add common CLI base (flags, exit codes, io, help, version)` を追記する
+- [x] T023 [P] ShellCheck 静的解析を全ファイルに実行し違反をゼロにする (`make lint`): `bin/corun`, `src/**/*.sh`
+- [x] T024 [P] Shfmt フォーマッタを全ファイルに実行する (`make format`): `bin/corun`, `src/**/*.sh`, `tests/**/*.bats`, `integration_tests/**/*.bats`
+- [x] T025 CI パイプラインをエンドツーエンドで通過させる（`make lint` → `make test` → `make integration_test` → `make build` がすべて green）
+- [x] T026 コアモジュールのテストカバレッジが 85% 以上であることを確認する（`exit_codes.sh` / `io.sh` / `flags.sh` / `help.sh` / `version.sh` を重点確認）
+- [x] T027 [P] `README.md` を更新する（インストール手順・使用方法・フラグ一覧・終了コード表）
+- [x] T028 [P] `CHANGELOG.md` に `feat: add common CLI base (flags, exit codes, io, help, version)` を追記する
 
 ---
 
