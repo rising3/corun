@@ -42,7 +42,7 @@ fi
 
 # --help / -h
 if [[ "${CORUN_HELP:-0}" -eq 1 ]]; then
-  print_help
+  print_help "${CORUN_ARGS[@]}"
   exit "$EXIT_OK"
 fi
 
