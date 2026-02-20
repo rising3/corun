@@ -8,12 +8,12 @@ created: "2026-02-20"
 updated: "2026-02-20"
 authors:
   - name: "maintainer"
-	email: ""
+    email: ""
 reviewers: []
 tags: ["run","cli","task"]
 command: "corun run"
 related:
-	- common.md
+  - common.md
 schema_version: "1.0"
 ---
 

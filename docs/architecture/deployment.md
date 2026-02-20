@@ -7,8 +7,8 @@ summary: "ローカル開発および CI/本番へのデプロイ方針と手順
 created: "2026-02-20"
 updated: "2026-02-20"
 authors:
-	- name: "maintainer"
-		email: ""
+  - name: "maintainer"
+    email: ""
 tags: ["architecture","deployment"]
 schema_version: "1.0"
 ---
