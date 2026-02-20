@@ -58,6 +58,8 @@ project-root/
 - Shfmt version 3.4.1+
 - make version 4.3+
 
+> 情報: これらのツールは、プロジェクトのビルドとテストに必要な前提条件です。インストールされていない場合は、各ツールの公式ドキュメントを参照してインストールしてください。
+
 #### build command
 
 | コマンド | 説明 | 標準的な実行時間 |
@@ -90,6 +92,14 @@ The pipeline includes the following steps:
 | 6 | `make integration_test` | 結合テストを実行（該当する場合） |
 | 7 | `make build` | プロジェクトをビルド／パッケージ作成（該当する場合） |
 | 8 | `actions/upload-artifact` / `codecov` | テスト結果やカバレッジレポートをアップロード |
+
+aptで以下のツールをインストールすることができます：
+
+```bash
+sudo apt update
+sudo apt install -y bash jq bats shellcheck shfmt make
+```
+GitHub Copilot CLI と yq は、公式のインストール手順に従ってインストールしてください。
 
 ### 単体テスト（フレームワーク、実行コマンド、設定ファイル等）
 
