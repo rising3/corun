@@ -12,3 +12,12 @@
 ```
 spec.mdのClarificationsを読み込み、docs/specs/features以下に反映すべき内容がないか確認し、必要であれば加筆して欲しい。
 ```
+
+```
+/speckit.plan 以下の仕様書を参照し、共通機能(docs/specs/features/common.md)を実現するために必要な技術スタック、プロジェクト構成、ビルド手順、テスト手順などの技術要件を抽出して、技術計画を作成する
+。
+- .github/copilot-instructions.md
+- docs/README.md
+- docs/introduction/README.md
+- docs/architecture/README.md
+```
