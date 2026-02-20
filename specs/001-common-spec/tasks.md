@@ -63,12 +63,12 @@
 
 ### Tests for User Story 2 ⚠️ Write FIRST, confirm FAIL before implementing
 
-- [ ] T014 [US2] 終了コード結合テストを作成する in `integration_tests/exit_codes_integration_test.bats`（正常完了 → 0、一般エラー発生 → 1、SIGINT 送信 → 2、不正フラグ → 3）
+- [x] T014 [US2] 終了コード結合テストを作成する in `integration_tests/exit_codes_integration_test.bats`（正常完了 → 0、一般エラー発生 → 1、SIGINT 送信 → 2、不正フラグ → 3）
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] ルートコマンドディスパッチャを実装する in `src/corun.sh`（`parse_flags()` 呼び出し → `CORUN_HELP=1` なら `print_help()` → `CORUN_VERSION=1` なら `print_version()` → サブコマンドへ振り分け; `trap 'exit 2' INT` で SIGINT をキャンセルコードにマップ; エラー時は `exit 1`）
-- [ ] T016 [US2] エントリポイントスクリプトを作成する in `bin/corun`（`#!/usr/bin/env bash`、`set -euo pipefail`、`src/corun.sh` を source して実行、`chmod +x` で実行権限付与）
+- [x] T015 [US2] ルートコマンドディスパッチャを実装する in `src/corun.sh`（`parse_flags()` 呼び出し → `CORUN_HELP=1` なら `print_help()` → `CORUN_VERSION=1` なら `print_version()` → サブコマンドへ振り分け; `trap 'exit 2' INT` で SIGINT をキャンセルコードにマップ; エラー時は `exit 1`）
+- [x] T016 [US2] エントリポイントスクリプトを作成する in `bin/corun`（`#!/usr/bin/env bash`、`set -euo pipefail`、`src/corun.sh` を source して実行、`chmod +x` で実行権限付与）
 
 **Checkpoint**: `make integration_test` で 4 パターンの終了コードが全て green になること
 
