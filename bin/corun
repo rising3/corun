@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# bin/corun
+#
+# エントリポイント
+# src/corun.sh をロードしてメイン処理を実行する
+
+set -euo pipefail
+
+# bin/ から相対パスで src/corun.sh を解決する
+_CORUN_BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_CORUN_SRC="${_CORUN_BIN_DIR}/../src/corun.sh"
+
+# shellcheck source=src/corun.sh
+source "$_CORUN_SRC"
