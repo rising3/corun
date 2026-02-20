@@ -61,7 +61,7 @@ corun run < リダイレクト
 フラグ | 短縮形 | 型 | デフォルト | 説明
 --- | --- | --- | --- | ---
 --prompt | -p | string | - | プロンプト定義ファイルのパスを指定する
---model | - | string | gpt-5-mini | 使用するモデル名を指定する
+--model | - | string | copilot-cli 準拠 | 使用するモデル名を指定する（省略時は copilot-cli のデフォルトモデルに委ねる）
 --continue | - | bool | false | 前回のセッションを継続する
 --no-ask-user | - | bool | false | ユーザーへの問い合わせを無効化し、エージェントが自律的に動作する
 --log-dir | - | string | copilot-cli 準拠 | ログファイルの出力先ディレクトリを指定する (デフォルト: `~/.copilot/logs/`)
@@ -101,7 +101,9 @@ YAML フィールド | copilot cli フラグ | 備考
 
 ### フラグの競合
 
-- なし
+- `resume`（YAML フィールド）と `--continue` フラグを同時に指定した場合:
+  - **1回目のプロンプト実行**: `--resume <session-id>` のみを付与し、`--continue` は渡さない（`resume` 優先）
+  - **2回目以降のプロンプト実行**: `--resume` は渡さない。`--continue` が有効な場合のみ `--continue` を付与する
 
 ### プロンプト定義
 
@@ -176,7 +178,7 @@ stderr | エラーメッセージ、ログ、進捗表示
    - `--prompt <file>` が指定されている場合 → ファイルをプロンプト定義として読み込む（引数・stdin は無視）
    - `--prompt` なしで引数 (`string ...`) が指定されている場合 → 各引数を1プロンプトとしてプロンプト定義の形式に変換する（stdin は無視）
    - `--prompt`・引数いずれもなく stdin がパイプ/リダイレクトの場合 → stdin 全体を1プロンプトとして扱う
-   - いずれも該当しない場合 (stdin が TTY) → 終了コード 3 (EXIT_USAGE) で終了する
+   - いずれも該当しない場合 (stdin が TTY またはクローズ済み) → ハングせず終了コード 3 (EXIT_USAGE) で終了する
 
 4. **プロンプト定義をパースする**
    - YAML のパースに失敗した場合は終了コード 1 (EXIT_ERROR) で終了し、エラーメッセージを stderr に出力する
@@ -184,13 +186,14 @@ stderr | エラーメッセージ、ログ、進捗表示
 
 5. **プロンプトを順番に実行する** (`prompts[]` の定義順)
    1. **copilot CLI フラグを組み立てる**
-      - プロンプト定義ファイルの `resume` フィールドがある場合は `--resume <session-id>` を付与する
+      - プロンプト定義ファイルの `resume` フィールドがある場合は、**1回目のプロンプト実行時のみ** `--resume <session-id>` を付与する
+      - `resume` と `--continue` が両方指定されている場合: 1回目は `--resume` のみ（`--continue` は渡さない）、2回目以降は `--continue` が有効な場合のみ `--continue` を付与する
       - グローバルフラグをベースに copilot CLI フラグへマッピングする
       - プロンプト個別の `continue` / `no-ask-user` が設定されている場合はそちらを優先する (グローバル値を上書きするのではなく、そのプロンプト呼び出し時のみ有効)
       - プロンプト個別の `env` が設定されている場合は、環境変数として copilot CLI に渡す
    2. **copilot CLI を実行する**
       - `copilot <フラグ一式> -p <prompt文字列>` を実行する
-      - `timeout_seconds` が設定されている場合は、タイムアウト経過で強制終了し終了コード 1 で次のステップへ進む
+      - `timeout_seconds` が設定されている場合は、タイムアウト経過で強制終了し copilot CLI の非ゼロ終了と同等の「失敗」として扱う（次の「失敗時の処理」ステップへ進む）
    3. **失敗時の処理** (判定基準: copilot CLI の終了コードが 0 以外)
       - `retries.count` が残っている場合: n 回目の再試行前に `delay_seconds × n` 秒待機してから再実行する (`backoff: linear` の計算式。例: delay_seconds=60 のとき 1回目60s、2回目120s)
       - 再試行をすべて使い切った場合、または `retries` 未設定の場合:
@@ -200,6 +203,7 @@ stderr | エラーメッセージ、ログ、進捗表示
 5. **終了する**
    - すべてのプロンプトが正常終了した場合は終了コード 0 で終了する
    - SIGINT を受信した場合は終了コード 2 (EXIT_CANCEL) で終了する
+   - SIGPIPE を受信した場合（下流のパイプが閉じた場合）は正常終了 (0) として扱う。SIGPIPE が発生しうる出力箇所は `|| true` または局所的な `set +e` でハンドリングし、`set -e` によるスクリプト中断を防ぐ
 
 ## エラーと終了コード
 
@@ -207,10 +211,10 @@ stderr | エラーメッセージ、ログ、進捗表示
 
 コード | 発生条件
 --- | ---
-0 | すべてのプロンプトが正常終了した
-1 | copilot CLI が見つからない / YAML パース失敗 / ファイルが存在しない / copilot CLI の実行エラー
+0 | すべてのプロンプトが正常終了した / SIGPIPE を受信した（下流のパイプ閉鎖）
+1 | copilot CLI が見つからない / YAML パース失敗 / ファイルが存在しない / copilot CLI の実行エラー / タイムアウト後に on_failure: abort
 2 | SIGINT (Ctrl-C) を受信した
-3 | 引数・パイプ・`--prompt` がすべてない / 不明なフラグを指定した
+3 | 引数・パイプ・`--prompt` がすべてない（stdin が TTY またはクローズ済み）/ 不明なフラグを指定した
 
 ### エラーメッセージ形式
 
@@ -253,7 +257,7 @@ Run 'corun run --help' for more information.
 | UT-12 | `--no-ask-user` をマッピングする | `--no-ask-user` | `--no-ask-user` が付与される |
 | UT-13 | `--log-dir` をマッピングする | `--log-dir ~/logs` | `--log-dir ~/logs` が付与される |
 | UT-14 | `--log-level` をマッピングする | `--log-level debug` | `--log-level debug` が付与される |
-| UT-15 | `--model` 未指定時はデフォルト値 `gpt-5-mini` が使用される | (フラグなし) | `--model gpt-5-mini` が付与される |
+| UT-15 | `--model` 未指定時は copilot CLI に `--model` フラグを渡さない | (フラグなし) | `--model` フラグが付与されない（copilot CLI のデフォルトモデルに委ねる） |
 
 #### プロンプト定義ファイルのパース
 
@@ -265,6 +269,9 @@ Run 'corun run --help' for more information.
 | UT-19 | トップレベルの `continue` がグローバルデフォルトになる | `continue: true` | 各プロンプトで `--continue` が付与される |
 | UT-20 | プロンプト個別の `continue` がグローバル設定を上書きする | グローバル `continue: false`、個別 `continue: true` | そのプロンプトのみ `--continue` が付与される |
 | UT-21 | プロンプト個別の `no-ask-user` がグローバル設定を上書きする | グローバル `no-ask-user: false`、個別 `no-ask-user: true` | そのプロンプトのみ `--no-ask-user` が付与される |
+| UT-22 | stdin がクローズ済みで引数・`--prompt` なし → 引数エラー | `run`（stdin がクローズ済み＝TTY でもパイプでもない） | 終了コード 3 (EXIT_USAGE)、ハングせずエラーメッセージを stderr に出力 |
+| UT-23 | `resume` と `--continue` 両方指定時、1回目は `--resume` のみ付与 | `resume: sid`・グローバル `continue: true` | 1回目プロンプト: `--resume sid` のみ付与（`--continue` なし）、2回目以降: `--continue` のみ付与 |
+| UT-24 | タイムアウト超過は失敗扱いとして `retries` を消費する | `timeout_seconds: 1`・`retries.count: 2`・応答が 2 秒以上かかる場合 | タイムアウト後に再試行し最大 2 回まで繰り返す（失敗扱い） |
 
 ---
 
@@ -295,6 +302,8 @@ Run 'corun run --help' for more information.
 | IT-13 | copilot CLI が失敗したとき `on_failure: abort` で中断する | プロンプト1失敗、`on_failure: abort` | 終了コード 1、プロンプト2以降は実行されない |
 | IT-14 | retries 設定に従って線形バックオフで再試行する | copilot CLI が1回失敗、`retries.count: 2`, `delay_seconds: 60` | 1回目は60s、2回目は120s 待機後に再試行し、最大2回まで繰り返す |
 | IT-15 | SIGINT を送信すると終了コード 2 で終了する | `corun run "hello"` 実行中に Ctrl-C | 終了コード 2 (EXIT_CANCEL) |
+| IT-16 | パイプ下流が先に終了しても正常終了する（SIGPIPE） | `corun run "hello" \| head -1` | 終了コード 0（SIGPIPE を正常終了として扱う）|
+| IT-17 | stdin クローズ済み・引数・`--prompt` なし → 使用方法エラー | `corun run < /dev/null` | 終了コード 3 (EXIT_USAGE)、ハングしない |
 
 
 
@@ -304,5 +313,6 @@ Run 'corun run --help' for more information.
 
 ## 更新履歴
 
+- 2026-02-21: spec.md Clarifications を反映（stdin クローズ済み EXIT_USAGE・timeout 失敗扱い・SIGPIPE 正常終了・--model デフォルト委任・resume×continue 優先順位）
 - 2026-02-21: common.md 準拠に仕様を整備（フラグ説明・優先順位・エラー形式・stdin挙動・YAMLコメント追加）
 - 2026-02-21: 作成
