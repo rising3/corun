@@ -8,3 +8,7 @@
 - docs/specs/features/README.md
 - docs/specs/features/common.md
 ```
+
+```
+spec.mdのClarificationsを読み込み、docs/specs/features以下に反映すべき内容がないか確認し、必要であれば加筆して欲しい。
+```
