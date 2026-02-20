@@ -24,10 +24,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 終了コードの単体テストを作成する in `tests/unit/exit_codes_test.bats`（`EXIT_OK=0` / `EXIT_ERROR=1` / `EXIT_CANCEL=2` / `EXIT_USAGE=3` の値確認、`die()` / `exit_with()` の動作確認）— **Red を確認してから T005 へ**
-- [ ] T005 終了コード定数とヘルパー関数を実装する in `src/lib/exit_codes.sh`（`EXIT_OK` / `EXIT_ERROR` / `EXIT_CANCEL` / `EXIT_USAGE`、`die()` / `exit_with()` 関数）
-- [ ] T006 [P] 入出力ユーティリティの単体テストを作成する in `tests/unit/io_test.bats`（`out()` が stdout のみ出力、`err()` が stderr のみ出力、`log_debug()` が `--verbose` OFF で何も出力しない、`--verbose` ON で `timestamp=<ISO8601> level=DEBUG msg=` 形式を stderr へ出力）— **Red を確認してから T007 へ**
-- [ ] T007 入出力ユーティリティ関数を実装する in `src/lib/io.sh`（`out()` → stdout、`err()` → stderr、`log_debug()` → `timestamp=<ISO8601> level=DEBUG msg=<message>` 形式で stderr）
+- [x] T004 終了コードの単体テストを作成する in `tests/unit/exit_codes_test.bats`（`EXIT_OK=0` / `EXIT_ERROR=1` / `EXIT_CANCEL=2` / `EXIT_USAGE=3` の値確認、`die()` / `exit_with()` の動作確認）— **Red を確認してから T005 へ**
+- [x] T005 終了コード定数とヘルパー関数を実装する in `src/lib/exit_codes.sh`（`EXIT_OK` / `EXIT_ERROR` / `EXIT_CANCEL` / `EXIT_USAGE`、`die()` / `exit_with()` 関数）
+- [x] T006 [P] 入出力ユーティリティの単体テストを作成する in `tests/unit/io_test.bats`（`out()` が stdout のみ出力、`err()` が stderr のみ出力、`log_debug()` が `--verbose` OFF で何も出力しない、`--verbose` ON で `timestamp=<ISO8601> level=DEBUG msg=` 形式を stderr へ出力）— **Red を確認してから T007 へ**
+- [x] T007 入出力ユーティリティ関数を実装する in `src/lib/io.sh`（`out()` → stdout、`err()` → stderr、`log_debug()` → `timestamp=<ISO8601> level=DEBUG msg=<message>` 形式で stderr）
 
 **Checkpoint**: `make test` が T004〜T007 の全テストで green になること
 
