@@ -82,12 +82,12 @@
 
 ### Tests for User Story 3 ⚠️ Write FIRST, confirm FAIL before implementing
 
-- [ ] T017 [US3] パイプ結合テストを作成する in `integration_tests/pipe_integration_test.bats`（stdout をパイプで受け取ったときエラーメッセージが含まれない、`2>/dev/null` で stderr を捨てたときエラーが stdout に漏れない、`corun ... <&-` が終了コード 0 で正常終了する）
+- [x] T017 [US3] パイプ結合テストを作成する in `integration_tests/pipe_integration_test.bats`（stdout をパイプで受け取ったときエラーメッセージが含まれない、`2>/dev/null` で stderr を捨てたときエラーが stdout に漏れない、`corun ... <&-` が終了コード 0 で正常終了する）
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] `src/corun.sh` に stdin クローズ済み対応を追加する（stdin が閉じられている場合でもハングしないよう stdin の状態を必要に応じてチェックし、使用しない場合は無視して続行する）
-- [ ] T019 [US3] `src/lib/io.sh` の stdout/stderr 分離をパイプテストで検証・修正する（パイプ経由で stderr が stdout に混在しないことを確認し、必要に応じて修正する）
+- [x] T018 [US3] `src/corun.sh` に stdin クローズ済み対応を追加する（stdin が閉じられている場合でもハングしないよう stdin の状態を必要に応じてチェックし、使用しない場合は無視して続行する）
+- [x] T019 [US3] `src/lib/io.sh` の stdout/stderr 分離をパイプテストで検証・修正する（パイプ経由で stderr が stdout に混在しないことを確認し、必要に応じて修正する）
 
 **Checkpoint**: `make integration_test` でパイプ・stdin クローズのテストが全て green になること
 
