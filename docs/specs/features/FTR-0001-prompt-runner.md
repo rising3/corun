@@ -65,7 +65,7 @@ corun run < リダイレクト
 --continue | - | bool | false | 前回のセッションを継続する
 --no-ask-user | - | bool | false | ユーザーへの問い合わせを無効化し、エージェントが自律的に動作する
 --log-dir | - | string | copilot-cli 準拠 | ログファイルの出力先ディレクトリを指定する (デフォルト: `~/.copilot/logs/`)
---log-level | - | string | copilot-cli 準拠 | ログレベルを指定する (選択肢: `none`, `error`, `warning`, `info`, `debug`, `all`, `default`)
+--log-level | - | string | copilot-cli 準拠 | ログレベルを指定する。値の検証は行わず copilot-cli に透過的に渡す（エラー処理は copilot-cli に委ねる）
 
 ### フラグの優先順位
 
@@ -126,7 +126,7 @@ prompts:
     continue: true         # このプロンプトのみ有効 (グローバルより優先)
     no-ask-user: true      # このプロンプトのみ有効 (グローバルより優先)
     env:
-      TZ: "Asia/Tokyo"     # このプロンプト実行時のみ適用される環境変数
+      TZ: "Asia/Tokyo"     # このプロンプト実行時のみ適用される環境変数（サニタイズなしで copilot CLI の実行環境に透過的に渡す）
     timeout_seconds: 3600  # タイムアウト秒数 (省略可)
     retries:
       count: 2             # 最大再試行回数
@@ -156,9 +156,9 @@ string | いいえ | プロンプト文字列(複数指定可能)
 
 ストリーム | 用途
 --- | ---
-stdin | データ入力、パイプ入力
+stdin | データ入力、パイプ入力（複数行のテキストも改行を含め全体を1プロンプトとして copilot CLI に渡す）
 stdout | 正常な出力結果（copilot CLI の出力をそのまま流す。複数プロンプトを連続実行する場合も区切り文字列は挿入しない）
-stderr | エラーメッセージ、ログ、進捗表示（各プロンプトの実行状態は `--verbose` 指定時のみ出力）
+stderr | エラーメッセージ、ログ、進捗表示。`--verbose` 指定時のみ以下の3イベントを構造化ログ形式（`timestamp=<ISO8601> level=DEBUG msg=<メッセージ>`）で出力する: 実行開始 `msg=running prompt id=<id>`・実行完了 `msg=prompt completed id=<id>`・実行失敗 `msg=prompt failed id=<id> exit_code=<N>`
 
 ### stdin の挙動
 
@@ -293,7 +293,7 @@ Run 'corun run --help' for more information.
 | IT-06 | `--continue` を付与して実行できる | `corun run --continue "hello" "bye"` | 終了コード 0、各呼び出しに `--continue` が付与される |
 | IT-07 | `--model` を付与して実行できる | `corun run --model gpt-5-mini "hello"` | 終了コード 0、`--model gpt-5-mini` が付与される |
 | IT-08 | stdout に正常な出力が出る | `corun run "hello"` | copilot CLI の出力が stdout に流れる |
-| IT-09 | `--verbose` 付きで実行するとデバッグログが stderr に出る | `corun --verbose run "hello"` | stderr に `level=DEBUG` ログが出力される |
+| IT-09 | `--verbose` 付きで実行するとデバッグログが stderr に出る | `corun --verbose run "hello"` | stderr に `timestamp=... level=DEBUG msg=running prompt id=...` 形式のログが出力される（開始・完了・失敗の3イベント） |
 
 #### 異常系
 
@@ -317,6 +317,7 @@ Run 'corun run --help' for more information.
 
 ## 更新履歴
 
+- 2026-02-21: specs/002-prompt-runner/spec.md Clarifications (Session 2026-02-21) を反映（`env` フィールドの透過渡し・サニタイズなし明記、stdin 複数行→1プロンプト明記、`--verbose` 時の3イベント構造化ログ形式を入出力セクションと IT-09 に追記、`--log-level` バリデーションの copilot CLI 委任を明記）
 - 2026-02-21: spec.md Clarifications (2026-02-21 セッション) を反映（YAML プロンプト本文フィールド名を `prompt` → `text` に変更、複数入力同時指定時の警告動作追加、stdout 区切りなし・実行状態は --verbose 時のみ stderr に明記、プロンプト数上限なし追記）
 - 2026-02-21: spec.md Clarifications を反映（stdin クローズ済み EXIT_USAGE・timeout 失敗扱い・SIGPIPE 正常終了・--model デフォルト委任・resume×continue 優先順位）
 - 2026-02-21: common.md 準拠に仕様を整備（フラグ説明・優先順位・エラー形式・stdin挙動・YAMLコメント追加）
