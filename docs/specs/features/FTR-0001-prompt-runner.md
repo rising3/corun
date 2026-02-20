@@ -109,7 +109,7 @@ prompts:
 			action: "abort"
 ```
 
-- prompt[]のcontinue, no-ask-userの値が設定されている場合は、プロンプトを実行する際にcontinue, no-ask-userより優先する（continue, no-ask-userを上書きするものではない）
+- `prompts[]` の各プロンプトに `continue` / `no-ask-user` が設定されている場合は、そのプロンプトの実行時のみグローバルフラグ (`--continue` / `--no-ask-user`) の値より優先して使用する（グローバルフラグの値自体は変更しない）
 
 ## 引数
 
