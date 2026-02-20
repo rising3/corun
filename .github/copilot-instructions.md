@@ -49,7 +49,7 @@ project-root/
 
 #### prerequisites
 
-- bash version 0.5.2+
+- bash version 5.2+
 - GitHub Copilot CLI version 0.0.400+
 - yq version 4.30.8+
 - jq version 1.6+
@@ -85,16 +85,20 @@ The pipeline includes the following steps:
 | 1 | `actions/checkout@v3` | リポジトリをチェックアウトしてソースを取得 |
 | 2 | `install prerequisites` | `bash`, `copilot-cli`, `yq`, `jq`, `bats`, `shellcheck`, `shfmt`, `make` など必要ツールをインストール |
 | 3 | `make lint` / `shellcheck` | シェルスクリプトの静的解析を実行しスタイルと潜在的な問題を検出 |
-| 4 | `make test` / `bats` | 単体テストを実行 |
-| 5 | `make integration_test` | 結合テストを実行（該当する場合） |
-| 6 | `make build` | プロジェクトをビルド／パッケージ作成（該当する場合） |
-| 7 | `actions/upload-artifact` / `codecov` | テスト結果やカバレッジレポートをアップロード |
+| 4 | `make format` / `shfmt --diff` | コードフォーマットの差分チェック（差分があれば CI 失敗） |
+| 5 | `make test` / `bats` | 単体テストを実行 |
+| 6 | `make integration_test` | 結合テストを実行（該当する場合） |
+| 7 | `make build` | プロジェクトをビルド／パッケージ作成（該当する場合） |
+| 8 | `actions/upload-artifact` / `codecov` | テスト結果やカバレッジレポートをアップロード |
 
 ### 単体テスト（フレームワーク、実行コマンド、設定ファイル等）
 
 - BATS (Bash Automated Testing System) を使用して単体テストを実行します。
 - テストファイルは `tests/` ディレクトリに配置され、`.bats` 拡張子を持ちます。
-- copilot-cliのモックやスタブを使用して、外部依存関係を切り離したテストを作成します。
+- 外部依存（GitHub Copilot CLI 等）を単体テストから切り離すために以下のスタブ戦略を採用する:
+  - `tests/fixtures/` にスタブスクリプト（外部コマンドのシミュレーター）を配置し、`PATH` に優先追加して差し替える
+  - BATS の `setup()` / `teardown()` で `PATH` を制御し、テスト間の副作用を排除する
+  - 環境変数（`CORUN_VERBOSE` 等）はテスト内で直接設定し、`parse_flags()` を経由せず単体で検証可能にする
 - テストの実行は以下のコマンドで行います。
 
 ```bash
@@ -128,6 +132,7 @@ make format
 - すべてのコードは、定められたスタイルガイドとリントルールに従う必要がある。
 - すべてのプルリクエストは、コードレビューを通過し、CIテストを成功させる必要がある。
 - 可読性と拡張性を維持するため、必要に応じてコードのリファクタリングと共通処理化を優先する。
+- `set -euo pipefail` はすべてのスクリプトで使用するが、パイプチェーン（`corun ... | head` 等）では SIGPIPE（終了コード 141）によって意図せずスクリプトが中断されることに注意する。SIGPIPE が発生しうる箇所は `|| true` または局所的な `set +e` でハンドリングし、結合テストでシナリオを明示的にカバーすること。
 
 2. テスト標準(NON-NEGOTIABLE)（テストファースト前提、単体テスト・結合テストの必須ルールを含む）
 
