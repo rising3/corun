@@ -93,6 +93,7 @@ corunフラグ | フラグの値 | copilot cliのフラグ
 
 YAML フィールド | copilot cli フラグ | 備考
 --- | --- | ---
+`text` | `-p <text>` | プロンプト本文。省略不可
 `resume` | --resume `<session-id>` | 省略時は渡さない
 `log-dir` | --log-dir `<dir>` | 省略時は copilot-cli デフォルト
 `log-level` | --log-level `<level>` | 省略時は copilot-cli デフォルト
@@ -119,7 +120,7 @@ prompts:
   - id: hello
     title: "こんにちは"
     description: "挨拶する"
-    prompt: |
+    text: |
       こんにちは
       暑いですね
     continue: true         # このプロンプトのみ有効 (グローバルより優先)
@@ -144,17 +145,20 @@ prompts:
 string | いいえ | プロンプト文字列(複数指定可能)
 
 入力ソースの優先順位: `--prompt` > 引数 > stdin（上位が存在すれば下位は無視する）。
+上位と下位が同時に指定された場合は、上位を適用したうえで「下位の入力ソースを無視した」旨の警告メッセージを stderr に出力する。
 引数が指定されていない場合、以下のいずれかの条件を満たさなければ終了コード 3 (EXIT_USAGE) とする。
 - `--prompt` フラグが指定されている
 - パイプ/リダイレクト入力がある
+
+1回の実行で指定できるプロンプト数に実装上の上限は設けない（OS または AI 実行エンジンのリソース限界まで実行を継続する）。
 
 ## 入出力
 
 ストリーム | 用途
 --- | ---
 stdin | データ入力、パイプ入力
-stdout | 正常な出力結果（copilot CLI の出力をそのまま流す）
-stderr | エラーメッセージ、ログ、進捗表示
+stdout | 正常な出力結果（copilot CLI の出力をそのまま流す。複数プロンプトを連続実行する場合も区切り文字列は挿入しない）
+stderr | エラーメッセージ、ログ、進捗表示（各プロンプトの実行状態は `--verbose` 指定時のみ出力）
 
 ### stdin の挙動
 
@@ -313,6 +317,7 @@ Run 'corun run --help' for more information.
 
 ## 更新履歴
 
+- 2026-02-21: spec.md Clarifications (2026-02-21 セッション) を反映（YAML プロンプト本文フィールド名を `prompt` → `text` に変更、複数入力同時指定時の警告動作追加、stdout 区切りなし・実行状態は --verbose 時のみ stderr に明記、プロンプト数上限なし追記）
 - 2026-02-21: spec.md Clarifications を反映（stdin クローズ済み EXIT_USAGE・timeout 失敗扱い・SIGPIPE 正常終了・--model デフォルト委任・resume×continue 優先順位）
 - 2026-02-21: common.md 準拠に仕様を整備（フラグ説明・優先順位・エラー形式・stdin挙動・YAMLコメント追加）
 - 2026-02-21: 作成
