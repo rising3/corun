@@ -101,12 +101,12 @@
 
 ### Tests for User Story 4 ⚠️ Write FIRST, confirm FAIL before implementing
 
-- [ ] T020 [US4] ヘルプ出力の単体テストを作成する in `tests/unit/help_test.bats`（`print_help()` の出力が DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE を含む）
-- [ ] T021 [P] [US4] ヘルプ結合テストを作成する in `integration_tests/help_integration_test.bats`（`corun --help` → 終了コード 0、5 セクション全含む; サブコマンド `--help` → そのサブコマンドのヘルプが出力される）
+- [x] T020 [US4] ヘルプ出力の単体テストを作成する in `tests/unit/help_test.bats`（`print_help()` の出力が DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE を含む）
+- [x] T021 [P] [US4] ヘルプ結合テストを作成する in `integration_tests/help_integration_test.bats`（`corun --help` → 終了コード 0、5 セクション全含む; サブコマンド `--help` → そのサブコマンドのヘルプが出力される）
 
 ### Implementation for User Story 4
 
-- [ ] T022 [US4] ヘルプ出力関数を実装する in `src/lib/help.sh`（`print_help()`: DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE の各セクションを stdout へ出力; ルートコマンドとサブコマンドで出力を切り替えられる設計）
+- [x] T022 [US4] ヘルプ出力関数を実装する in `src/lib/help.sh`（`print_help()`: DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE の各セクションを stdout へ出力; ルートコマンドとサブコマンドで出力を切り替えられる設計）
 
 **Checkpoint**: `corun --help` が終了コード 0 かつ 5 セクションを表示することを独立して確認
 
