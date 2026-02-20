@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - next
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+      - next
+      - "feature/**"
+
+jobs:
+  build-and-test:
+    name: Lint, Format, Test, Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: ソースコードをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: 必要ツールをインストール
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update -qq
+          # bash は ubuntu-latest に標準搭載 (5.x)
+          # shellcheck
+          sudo apt-get install -y shellcheck
+          # shfmt
+          SHFMT_VERSION="3.7.0"
+          curl -sSLo /usr/local/bin/shfmt \
+            "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64"
+          chmod +x /usr/local/bin/shfmt
+          # bats-core
+          BATS_VERSION="1.10.0"
+          curl -sSL \
+            "https://github.com/bats-core/bats-core/archive/refs/tags/v${BATS_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          sudo /tmp/bats-core-${BATS_VERSION}/install.sh /usr/local
+          # jq / yq
+          sudo apt-get install -y jq
+          YQ_VERSION="4.40.5"
+          curl -sSLo /usr/local/bin/yq \
+            "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
+          chmod +x /usr/local/bin/yq
+          # make
+          sudo apt-get install -y make
+          # バージョン確認
+          bash --version | head -1
+          shellcheck --version | head -2
+          shfmt --version
+          bats --version
+          jq --version
+          yq --version
+          make --version | head -1
+
+      # Step 3: 静的解析 (ShellCheck)
+      - name: Lint (shellcheck)
+        run: make lint
+
+      # Step 4: フォーマットチェック (shfmt --diff)
+      # 差分があれば CI 失敗
+      - name: Format check (shfmt --diff)
+        run: make format-check
+
+      # Step 5: 単体テスト
+      - name: Unit tests (bats)
+        run: make test
+
+      # Step 6: 結合テスト
+      - name: Integration tests (bats)
+        run: make integration_test
+
+      # Step 7: ビルド
+      - name: Build
+        run: make build
+
+      # Step 8: テスト結果・カバレッジをアップロード
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            .bats_tmp/
+          if-no-files-found: ignore

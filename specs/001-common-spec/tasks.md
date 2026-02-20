@@ -12,9 +12,9 @@
 
 **Purpose**: ディレクトリ構成・Makefile・CI スケルトンの整備。すべてのフェーズの前提。
 
-- [ ] T001 `bin/` / `src/lib/` / `tests/unit/` / `tests/fixtures/` / `integration_tests/` のディレクトリ構造を作成する
-- [ ] T002 Makefile に `lint` / `format` / `test` / `integration_test` / `build` / `clean` / `help` / `all` / `ci` の全ターゲットを定義する in `Makefile`
-- [ ] T003 [P] CI パイプラインのスケルトンを作成する in `.github/workflows/ci.yml`（トリガー: push/PR to `main`, `next`, `feature/**`; ステップ: checkout → install prerequisites → lint → test → integration_test → build → upload）
+- [x] T001 `bin/` / `src/lib/` / `tests/unit/` / `tests/fixtures/` / `integration_tests/` のディレクトリ構造を作成する
+- [x] T002 Makefile に `lint` / `format` / `test` / `integration_test` / `build` / `clean` / `help` / `all` / `ci` の全ターゲットを定義する in `Makefile`
+- [x] T003 [P] CI パイプラインのスケルトンを作成する in `.github/workflows/ci.yml`（トリガー: push/PR to `main`, `next`, `feature/**`; ステップ: checkout → install prerequisites → lint → test → integration_test → build → upload）
 
 ---
 
