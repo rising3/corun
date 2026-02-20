@@ -13,8 +13,8 @@ reviewers: []
 tags: ["common", "cli", "corun"]
 command_root: "corun"
 related:
-  - FTR-0001-task-runner.md
-  - FTR-0002-task-gen.md
+  - FTR-0001-prompt-runner.md
+  - FTR-0002-prompt-definition-gen.md
   - template.md
 schema_version: "1.0"
 ---

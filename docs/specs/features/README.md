@@ -24,8 +24,8 @@ schema_version: "1.0"
 | ファイル | 説明 |
 |---|---|
 | `common.md` | 全体の共通仕様（終了コード、グローバルフラグ、入出力、コマンド階層など） |
-| `FTR-0001-task-runner.md` | タスク実行（`run`）機能の仕様 |
-| `FTR-0002-task-gen.md` | 生成（`gen`）機能の仕様 |
+| `FTR-0001-prompt-runner.md` | プロンプト実行（`run`）機能の仕様 |
+| `FTR-0002-prompt-definition-gen.md` | プロンプト定義生成（`gen`）機能の仕様 |
 | `template.md` | 新しい機能仕様作成のテンプレート |
 
 ドキュメントの方針:
@@ -42,7 +42,7 @@ schema_version: "1.0"
 
 テンプレート参照: `template.md`
 
-例: `FTR-0001-task-runner.md` を参照して `run` コマンドの期待動作やテストケースを確認してください。
+例: `FTR-0001-prompt-runner.md` を参照して `run` コマンドの期待動作やテストケースを確認してください。
 
 ---
 
