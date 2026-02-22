@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 # src/lib/help.sh
 #
-# ヘルプ出力テンプレート
-# 5 セクション（DESCRIPTION / USAGE / AVAILABLE COMMANDS / EXAMPLES / LEARN MORE）
-# を stdout に出力する
+# Help output template.
+# Sections: header / DESCRIPTION / USAGE / AVAILABLE SUBCOMMANDS / FLAGS / EXAMPLES / LEARN MORE
+# All output is in English only (per spec SPEC-COMMON).
 
-# print_help() — コマンドのヘルプを stdout に出力する
+# print_help() — print command help to stdout
 #
-# 出力セクション:
-#   DESCRIPTION       - corun の概要
-#   USAGE             - コマンドの使い方
-#   AVAILABLE COMMANDS - 利用可能なサブコマンド一覧
-#   EXAMPLES          - 使用例
-#   LEARN MORE        - 追加情報の参照先
+# Output sections:
+#   header                 - one-line summary (<name> - <description>)
+#   DESCRIPTION:           - overview of corun
+#   USAGE:                 - how to use the command
+#   AVAILABLE SUBCOMMANDS: - list of available subcommands
+#   FLAGS:                 - available flags
+#   EXAMPLES:              - usage examples
+#   LEARN MORE:            - links for further information
 #
-# 引数:
-#   subcommand (省略可) - サブコマンド名。指定された場合はサブコマンドのヘルプを出力する
+# Args:
+#   subcommand (optional) - when provided, print subcommand-specific help
 #
-# 使用方法:
+# Usage:
 #   print_help
 #   print_help run
 print_help() {
@@ -31,67 +33,104 @@ print_help() {
   _print_root_help
 }
 
-# _print_root_help() — ルートコマンドのヘルプを出力する（内部関数）
+# _print_root_help() — print root command help (internal)
 _print_root_help() {
   printf '%s\n' \
-    "DESCRIPTION" \
-    "  corun — GitHub Copilot CLI を non-interactive モードで連続実行するための CLI ツール。" \
-    "  プロンプトファイル（YAML/JSON）を読み込み、複数のプロンプトを順番に実行します。" \
+    "corun - GitHub Copilot CLI batch runner." \
     "" \
-    "USAGE" \
-    "  corun [--help|-h] [--verbose] [--version|-v] <subcommand> [<args>]" \
+    "DESCRIPTION:" \
+    "  Runs multiple GitHub Copilot CLI prompts sequentially in non-interactive mode." \
     "" \
-    "AVAILABLE COMMANDS" \
-    "  run       プロンプトファイルを読み込み、Copilot CLI を連続実行する" \
+    "USAGE:" \
+    "  corun <subcommand> [flags] [arguments]" \
     "" \
-    "EXAMPLES" \
-    "  corun run prompts.yaml           # プロンプトファイルを実行する" \
-    "  corun run prompts.yaml --verbose # 詳細ログを有効にして実行する" \
-    "  corun --version                  # バージョン情報を表示する" \
+    "AVAILABLE SUBCOMMANDS:" \
+    "  run               Handles execution of multiple prompts." \
+    "  gen               Generate a template for a prompt definition." \
     "" \
-    "LEARN MORE" \
-    "  ドキュメント: https://github.com/rising3/corun#readme" \
-    "  Issues:      https://github.com/rising3/corun/issues"
+    "FLAGS:" \
+    "  --help            Show help for command" \
+    "  --version         Show version" \
+    "  --verbose         Enable verbose logging" \
+    "" \
+    "EXAMPLES:" \
+    "  corun --version" \
+    "  corun --help" \
+    '  corun run "prompt1" "prompt2"' \
+    '  corun run --prompt prompts.yaml' \
+    "  corun gen --output prompts.yaml \"prompt1\" \"prompt2\"" \
+    "" \
+    "LEARN MORE:" \
+    "  Use \`corun <subcommand> --help\` for more information about a command."
 }
 
-# _print_subcommand_help() — サブコマンドのヘルプを出力する（内部関数）
+# _print_subcommand_help() — print subcommand-specific help (internal)
 _print_subcommand_help() {
   local subcommand="$1"
   case "$subcommand" in
     run)
       printf '%s\n' \
-        "DESCRIPTION" \
-        "  corun run — プロンプトファイルを読み込み、Copilot CLI を連続実行する" \
+        "corun run - Handles execution of multiple prompts." \
         "" \
-        "USAGE" \
-        "  corun run <prompt-file> [--verbose]" \
+        "DESCRIPTION:" \
+        "  Read prompts from arguments or a prompt file (YAML) and execute each" \
+        "  sequentially via GitHub Copilot CLI in non-interactive mode." \
         "" \
-        "AVAILABLE COMMANDS" \
-        "  (このサブコマンドにはサブコマンドがありません)" \
+        "USAGE:" \
+        "  corun run [flags] [arguments]" \
         "" \
-        "EXAMPLES" \
-        "  corun run prompts.yaml" \
-        "  corun run prompts.json --verbose" \
+        "AVAILABLE SUBCOMMANDS:" \
+        "  (no subcommands)" \
         "" \
-        "LEARN MORE" \
-        "  詳細: corun --help"
+        "FLAGS:" \
+        "  --help            Show help for command" \
+        "  --prompt          Path to a prompt definition file (YAML)" \
+        "  --verbose         Enable verbose logging" \
+        "" \
+        "EXAMPLES:" \
+        '  corun run "prompt1" "prompt2"' \
+        "  corun run --prompt prompts.yaml" \
+        "" \
+        "LEARN MORE:" \
+        "  Use \`corun --help\` for more information about a command."
+      ;;
+    gen)
+      printf '%s\n' \
+        "corun gen - Generate a template for a prompt definition." \
+        "" \
+        "DESCRIPTION:" \
+        "  Generate a YAML prompt definition template file from the given prompt strings." \
+        "" \
+        "USAGE:" \
+        "  corun gen [flags] [arguments]" \
+        "" \
+        "AVAILABLE SUBCOMMANDS:" \
+        "  (no subcommands)" \
+        "" \
+        "FLAGS:" \
+        "  --help            Show help for command" \
+        "  --output          Output file path (default: prompts.yaml)" \
+        "  --verbose         Enable verbose logging" \
+        "" \
+        "EXAMPLES:" \
+        "  corun gen" \
+        '  corun gen --output prompts.yaml "prompt1" "prompt2"' \
+        "" \
+        "LEARN MORE:" \
+        "  Use \`corun --help\` for more information about a command."
       ;;
     *)
       printf '%s\n' \
-        "DESCRIPTION" \
-        "  '%s': 不明なサブコマンドです" "$subcommand" \
+        "corun: '$subcommand': unknown subcommand" \
         "" \
-        "USAGE" \
-        "  corun --help で使用可能なコマンド一覧を確認してください" \
+        "USAGE:" \
+        "  corun <subcommand> [flags] [arguments]" \
         "" \
-        "AVAILABLE COMMANDS" \
-        "  corun --help を実行してください" \
-        "" \
-        "EXAMPLES" \
+        "EXAMPLES:" \
         "  corun --help" \
         "" \
-        "LEARN MORE" \
-        "  https://github.com/rising3/corun#readme"
+        "LEARN MORE:" \
+        "  Use \`corun --help\` to see available commands."
       ;;
   esac
 }
